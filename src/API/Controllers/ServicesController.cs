@@ -15,12 +15,11 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
     [HttpPost("Add")]
     [Authorize(Roles = "Admin")]
     [ValidateModel]
-    public async Task<IActionResult> AddService([FromForm]ServiceDto service)
+    public async Task<IActionResult> AddService([FromQuery]ServiceDto service)
     {
         try
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            await serviceService.AddServiceAsync(service, userId);
+            await serviceService.AddServiceAsync(service);
             return Created();
         }
         catch (Exception ex)
@@ -31,12 +30,14 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
     [HttpPut("Edit")]
     [Authorize(Roles = "Admin")]
     [ValidateModel]
-    public async Task<IActionResult> EditService([FromForm][Required] int serviceId, [FromForm] ServiceDto serviceDto)
+    public async Task<IActionResult> EditService([FromQuery][Required] int serviceId, [FromQuery] ServiceDto serviceDto)
     {
         try
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            await serviceService.EtitServiceAsync(serviceId, serviceDto, userId);
+            var service = await serviceService.GetServiceDetailsAsync(serviceId);
+            if (service is null)
+                return NotFound();
+            await serviceService.EtitServiceAsync(serviceId, serviceDto);
             return Ok();
         }
         catch (Exception ex)
@@ -46,12 +47,14 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
     }
     [HttpDelete("Delete")]
     [Authorize(Roles = "Admin")]
-    public IActionResult DeleteService([Required] int serviceId)
+    public async Task<IActionResult> DeleteService([Required] int serviceId)
     {
         try
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            serviceService.DeleteServiceAsync(serviceId, userId);
+            var service = await serviceService.GetServiceDetailsAsync(serviceId);
+            if (service is null)
+                return NotFound();
+            await serviceService.DeleteServiceAsync(serviceId);
             return Ok();
         }
         catch (Exception ex)
@@ -90,7 +93,10 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
     {
         try
         {
-            return Ok(await serviceService.GetServiceDetailsAsync(serviceId));
+            var service = await serviceService.GetServiceDetailsAsync(serviceId);
+            if (service is null)
+                return NotFound();
+            return Ok(service);
         }
         catch (Exception ex)
         {
@@ -105,6 +111,9 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
     {
         try
         {
+            var service = await serviceService.GetServiceDetailsAsync(serviceId);
+            if (service is null)
+                return NotFound();
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return Ok(new { Balance = await serviceService.PayServiceAsync(userId, serviceId) });
         }

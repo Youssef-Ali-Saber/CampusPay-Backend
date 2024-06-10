@@ -27,9 +27,10 @@ public class SocialRequestService(IUnitOfWork unitOfWork) : ISocialRequestServic
             return null;
         }
     }
-    public async Task<SocialRequest?> GetDetailsAsync(int socialRequestId)
+    public SocialRequest? GetDetails(int socialRequestId)
     {
-        return await unitOfWork.SocialRequestRepository.GetByIdAsync(socialRequestId);
+        var socialRequest = unitOfWork.SocialRequestRepository.GetByFilter(m=>m.Id==socialRequestId , [n=>n.Service,n=>n.User]).FirstOrDefault();
+        return socialRequest;
     }
     public async Task AcceptAsync(int id, bool status)
     {
@@ -70,8 +71,10 @@ public class SocialRequestService(IUnitOfWork unitOfWork) : ISocialRequestServic
                 {
                     Date = DateTime.UtcNow,
                     SocialRequestId = socialRequest.Id,
-                    UserId = userId
+                    UserId = userId                    
                 };
+                await unitOfWork.DonationRepository.CreateAsync(donation);
+                await unitOfWork.SaveAsync();
                 var donation1 = unitOfWork.AppWalletRepository.GetByFilter(a => a.Type == "Donations").FirstOrDefault();
                 if (donation1 == null)
                 {
@@ -81,14 +84,15 @@ public class SocialRequestService(IUnitOfWork unitOfWork) : ISocialRequestServic
                         Type = "Donations"
                     };
                     await unitOfWork.AppWalletRepository.CreateAsync(appWallet);
+                    await unitOfWork.SaveAsync();
                 }
                 else
                 {
                     donation1.Balance += socialRequest.Service.Cost;
                 }
                 socialRequest.Status = "Donated";
-                socialRequest.Donation = donation;
-                await unitOfWork.DonationRepository.CreateAsync(donation);
+                socialRequest.DonationId = donation.Id;
+                unitOfWork.SocialRequestRepository.Update(socialRequest);
                 await unitOfWork.SaveAsync();
                 transaction.Commit();
                 return "Donation done successful";

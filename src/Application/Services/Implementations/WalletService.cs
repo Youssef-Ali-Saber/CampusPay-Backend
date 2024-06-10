@@ -35,6 +35,12 @@ public class WalletService(IUnitOfWork unitOfWork) : IWalletService
         }
     }
 
+    public async Task<decimal?> GetBalanceAsync(string userId)
+    {
+        var user = await unitOfWork.UserRepository.GetByIdAsync(userId);
+        return user?.Balance;
+    }
+
     public async Task<object?> TransferAsync(string FromUserId, string ToUserSSN, decimal balance, double? longit = null, double? latit = null)
     {
 

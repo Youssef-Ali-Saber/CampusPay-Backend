@@ -9,21 +9,13 @@ namespace Application.Services.Implementations;
 public class ServiceService(IUnitOfWork unitOfWork, FilesUploader filesUploader) : IServiceService
 {
     #region Manage Service 
-    public async Task DeleteServiceAsync(int serviceId, string userId)
+    public async Task DeleteServiceAsync(int serviceId)
     {
-        var service = await unitOfWork.ServiceRepository.GetByIdAsync(serviceId);
-        await unitOfWork.ServiceRepository.DeleteAsync(service);
-        var serviceManagement = new ServiceManagement
-        {
-            ServiceId = serviceId,
-            UserId = userId,
-            Type = "Delete"
-        };
-        await unitOfWork.ServiceManagementRepository.CreateAsync(serviceManagement);
+        await unitOfWork.ServiceRepository.DeleteAsync<int>(serviceId);
         await unitOfWork.SaveAsync();
     }
 
-    public async Task EtitServiceAsync(int serviceId, ServiceDto serviceDto, string userId)
+    public async Task EtitServiceAsync(int serviceId, ServiceDto serviceDto)
     {
         var service = await unitOfWork.ServiceRepository.GetByIdAsync(serviceId);
         service.Cost = serviceDto.Cost;
@@ -34,13 +26,6 @@ public class ServiceService(IUnitOfWork unitOfWork, FilesUploader filesUploader)
         service.CollegeName = serviceDto.CollegeName;
         if (serviceDto.Icon != null) service.FilePath = await filesUploader.UploadIconAsync(serviceDto.Icon);
         unitOfWork.ServiceRepository.Update(service);
-        var serviceManagement = new ServiceManagement
-        {
-            ServiceId = serviceId,
-            UserId = userId,
-            Type = "Edit"
-        };
-        await unitOfWork.ServiceManagementRepository.CreateAsync(serviceManagement);
         await unitOfWork.SaveAsync();
     }
 
@@ -49,7 +34,7 @@ public class ServiceService(IUnitOfWork unitOfWork, FilesUploader filesUploader)
         var service = await unitOfWork.ServiceRepository.GetByIdAsync(serviceId);
         return service;
     }
-    public async Task AddServiceAsync(ServiceDto serviceDto, string userId)
+    public async Task AddServiceAsync(ServiceDto serviceDto)
     {
         var addService = new Service
         {
@@ -73,14 +58,6 @@ public class ServiceService(IUnitOfWork unitOfWork, FilesUploader filesUploader)
         if (serviceDto.Icon != null)
             addService.FilePath = await filesUploader.UploadIconAsync(serviceDto.Icon);
         await unitOfWork.ServiceRepository.CreateAsync(addService);
-        await unitOfWork.SaveAsync();
-        var serviceManagement = new ServiceManagement
-        {
-            ServiceId = addService.Id,
-            UserId = userId,
-            Type = "Add"
-        };
-        await unitOfWork.ServiceManagementRepository.CreateAsync(serviceManagement);
         await unitOfWork.SaveAsync();
     }
     #endregion

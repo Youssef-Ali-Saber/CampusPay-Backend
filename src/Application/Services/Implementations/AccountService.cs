@@ -29,8 +29,8 @@ public class AccountService(IUnitOfWork unitOfWork, FilesUploader filesUploader)
     public async Task CreateAccount(User user, string Password, string type)
     {
 
-        user.FilePath = await filesUploader.UploadIconAsync(user.Picture);
-        await unitOfWork.UserRepository.CreateAsync(user, Password);
+        user.FilePath = user.Picture == null ? null : await filesUploader.UploadIconAsync(user.Picture);
+        await unitOfWork.UserRepository.CreateUserAsync(user, Password);
         await unitOfWork.UserRepository.AddToRoleAsync(user, type);
         await unitOfWork.SaveAsync();
     }

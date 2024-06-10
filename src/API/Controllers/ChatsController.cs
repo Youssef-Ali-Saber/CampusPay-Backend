@@ -24,9 +24,9 @@ public class ChatsController(IChatService chatService) : ControllerBase
         }
     }
 
-    [HttpGet("GetMassagesOf/{userId}")]
+    [HttpGet("GetMassages")]
     [Authorize]
-    public IActionResult MyChat(string? userId)
+    public IActionResult MyChat([FromQuery]string? userId)
     {
         try
         {

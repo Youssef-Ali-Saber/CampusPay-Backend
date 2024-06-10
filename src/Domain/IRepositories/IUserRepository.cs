@@ -8,7 +8,7 @@ namespace Domain.IRepositories;
 public interface IUserRepository : IGenericRepository<User>
 {
     Task<IEnumerable<User>> GetAllInRoleAsync(string role);
-    Task<IdentityResult> CreateAsync(User user, string Password);
+    Task<IdentityResult> CreateUserAsync(User user, string Password);
     Task<IdentityResult> AddToRoleAsync(User user, string type);
     Task<bool> CheckPasswordAsync(User user, string Password);
     Task<IList<string>> GetRolesAsync(User user);

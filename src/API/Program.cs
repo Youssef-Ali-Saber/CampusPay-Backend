@@ -27,20 +27,16 @@ public abstract class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
-        //--------------------------------------------------------------------------------
-
-        //builder.Services.AddDbContext<SqlServerDbContext>(options =>
-        //                    options.UseSqlServer(builder.Configuration
-        //                                .GetConnectionString("SqlServerConnection")));
-        builder.Services.AddDbContext<SqLiteDbContext>(options =>
-                            options.UseSqlite(builder.Configuration
-                                        .GetConnectionString("SqLiteConnection")));
+        builder.Services.AddDbContext<SqlServerDbContext>(options =>
+                            options.UseSqlServer(builder.Configuration
+                                        .GetConnectionString("SqlServerConnection")));
 
         builder.Services.AddIdentity<User, IdentityRole>()
-            .AddEntityFrameworkStores<SqLiteDbContext>()
+            .AddEntityFrameworkStores<SqlServerDbContext>()
             .AddDefaultTokenProviders();
         builder.Services.AddScoped<FilesUploader>();
         builder.Services.AddScoped<JWTHandler>();
+        builder.Services.AddScoped<StripeService>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IServiceService , ServiceService>();
         builder.Services.AddScoped<IAuthentcationService , AuthentcationService>();
@@ -51,9 +47,9 @@ public abstract class Program
         builder.Services.AddScoped<IAccountService, AccountService>();
         builder.Services.AddScoped<IConnectedUsersService,ConnectedUsersService>();
         builder.Services.AddScoped<UsersSeeder>();
-        //builder.Services.BuildServiceProvider()
-        //    .GetRequiredService<UsersSeeder>()
-        //    .SeedUsersAsync().Wait();
+        builder.Services.BuildServiceProvider()
+            .GetRequiredService<UsersSeeder>()
+            .SeedUsersAsync().Wait();
 
         builder.Services.AddAuthentication(options =>
         {

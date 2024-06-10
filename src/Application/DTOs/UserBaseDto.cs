@@ -5,13 +5,13 @@ namespace Application.DTOs;
 
 public class UserBaseDto
 {
-    [Required]
-    public string FullName { get; set; }
 
     [Required]
     [EmailAddress]
     [RegularExpression(@"^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$")]
     public virtual string Email { get; set; }
+    [Required]
+    public string FullName { get; set; }
     [Required]
     [MaxLength(14)]
     [MinLength(14)]

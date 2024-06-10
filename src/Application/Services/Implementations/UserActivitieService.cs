@@ -1,5 +1,4 @@
-﻿using Application.DTOs;
-using Application.Services.Interfaces;
+﻿using Application.Services.Interfaces;
 using Domain.Entities;
 using Domain.IRepositories;
 using Infrastructure.Services;
@@ -13,14 +12,47 @@ namespace Application.Services.Implementations;
 public class UserActivitieService(IUnitOfWork unitOfWork, FilesUploader filesUploader) : IUserActivitieService
 {
 
-    public HistoryTransactionDto GetHistoryTransactions(string userId)
+    public object GetHistoryTransactions(string userId)
     {
-        return new HistoryTransactionDto
+        return new
         {
-            transactions = unitOfWork.TransactionRepository.GetByFilter(t => t.UserId == userId).Include(s => s.Service).ToList(),
-            deposits = unitOfWork.DepositionRepository.GetByFilter(d => d.UserId == userId).ToList(),
-            transferFromMe = unitOfWork.TransformationRepository.GetByFilter(t => t.FromUserId == userId).ToList(),
-            transferToMe = unitOfWork.TransformationRepository.GetByFilter(t => t.ToUserId == userId).ToList()
+            transactions = unitOfWork.TransactionRepository.GetByFilter(t => t.UserId == userId,[s => s.Service])
+            .Select(s => new
+            {
+                date = DateOnly.FromDateTime(s.Date),
+                time = $"{s.Date.Hour}:{s.Date.Minute}",
+                serviceName = s.Service.Name,
+                cost = s.Service.Cost,
+                serviceType = s.Service.Type
+
+            }).ToList(),
+            deposits = unitOfWork.DepositionRepository.GetByFilter(d => d.UserId == userId)
+            .Select(s => new
+            {
+                date = DateOnly.FromDateTime(s.Date),
+                time = $"{s.Date.Hour}:{s.Date.Minute}",
+                balance = s.Balance
+            }).ToList(),
+            transferFromMe = unitOfWork.TransformationRepository.GetByFilter(t => t.FromUserId == userId)
+            .Select(s => new
+            {
+                balance = s.Balance,
+                date = DateOnly.FromDateTime(s.Date),
+                time = $"{s.Date.Hour}:{s.Date.Minute}",
+                FromUserFullName = s.FromUser.FullName,
+                ToUserFullName = unitOfWork.UserRepository.GetByIdAsync(s.ToUserId).Result.FullName
+
+
+            }).ToList(),
+            transferToMe = unitOfWork.TransformationRepository.GetByFilter(t => t.ToUserId == userId)
+            .Select(s => new
+            {
+                balance = s.Balance,
+                date = DateOnly.FromDateTime(s.Date),
+                time = $"{s.Date.Hour}:{s.Date.Minute}",
+                FromUserFullName = s.FromUser.FullName,
+                ToUserFullName = unitOfWork.UserRepository.GetByIdAsync(s.ToUserId).Result.FullName
+            }).ToList()
         };
 
     }
@@ -33,7 +65,10 @@ public class UserActivitieService(IUnitOfWork unitOfWork, FilesUploader filesUpl
                                     Service_Name = s.SocialRequest.Service.Name,
                                     amount = s.SocialRequest.Service.Cost,
                                     Student_Name = s.User.FullName.Split()[0],
-                                    college = s.User.College_Name
+                                    college = s.User.College_Name,
+                                    squadYear = s.User.Squad_Year,
+                                    date = DateOnly.FromDateTime(s.Date),
+                                    time = $"{s.Date.Hour}:{s.Date.Minute}"
                                 });
     }
     public async Task AddFeedbackAsync(string massage, string userId)
@@ -94,4 +129,30 @@ public class UserActivitieService(IUnitOfWork unitOfWork, FilesUploader filesUpl
         };
     }
 
+    public decimal? TotalOfMoneyPayed(string userId)
+    {
+        var transactions = unitOfWork.TransactionRepository.GetByFilter(t => t.UserId == userId, [m => m.Service]);
+
+        var totalOfMoneyPayed = transactions?.Sum(s => s.Service.Cost);
+
+        var transferFromMe = unitOfWork.TransformationRepository.GetByFilter(t => t.FromUserId == userId);
+
+        var total = totalOfMoneyPayed + transferFromMe.Sum(s => s.Balance);
+
+        return total;
+    }
+
+    public decimal? TotalOfMoneyDeposited(string userId)
+    {
+        var deposits = unitOfWork.DepositionRepository.GetByFilter(d => d.UserId == userId);
+
+        var transferToMe = unitOfWork.TransformationRepository.GetByFilter(t => t.ToUserId == userId);
+
+        var totalOfMoneyDeposited = deposits.Sum(s => s.Balance);
+
+        var total = totalOfMoneyDeposited + transferToMe.Sum(s => s.Balance);
+
+        return total;
+
+    }
 }

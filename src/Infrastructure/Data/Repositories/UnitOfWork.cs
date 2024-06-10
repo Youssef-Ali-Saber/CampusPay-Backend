@@ -8,8 +8,8 @@ namespace Infrastructure.Data.Repositories;
 
 public class UnitOfWork : IUnitOfWork
 {
-    private readonly SqLiteDbContext db;
-    public UnitOfWork(SqLiteDbContext db,UserManager<User> userManager)
+    private readonly SqlServerDbContext db;
+    public UnitOfWork(SqlServerDbContext db,UserManager<User> userManager)
     {
         this.db = db;
         UserRepository = new UserRepository(db,userManager);
@@ -18,7 +18,6 @@ public class UnitOfWork : IUnitOfWork
         FeedbackRepository = new FeedbackRepository(db);
         TransactionRepository = new TransactionRepository(db);
         TransformationRepository = new TransformationRepository(db);
-        ServiceManagementRepository = new ServiceManagementRepository(db);
         DepositionRepository = new DepositionRepository(db);
         DonationRepository = new DonationRepository(db);
         AppWalletRepository = new AppWalletRepository(db);
@@ -37,8 +36,6 @@ public class UnitOfWork : IUnitOfWork
     public ITransactionRepository TransactionRepository { get; private set; }
 
     public ITransformationRepository TransformationRepository { get; private set; }
-
-    public IServiceManagementRepository ServiceManagementRepository { get; private set; }
 
     public IDepositionRepository DepositionRepository { get; private set; }
 

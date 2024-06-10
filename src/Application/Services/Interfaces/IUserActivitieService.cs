@@ -12,5 +12,7 @@ public interface IUserActivitieService
     Task<Dictionary<string, string>> UpdateProfileAsync(string userId, string? newFullName, IFormFile? picture);
     object? GetProfile(Expression<Func<User, bool>> filter);
     object? HistoryDonations(string userId);
-    HistoryTransactionDto GetHistoryTransactions(string userId);
+    object GetHistoryTransactions(string userId);
+    decimal? TotalOfMoneyPayed (string userId);
+    decimal? TotalOfMoneyDeposited(string userId);
 }

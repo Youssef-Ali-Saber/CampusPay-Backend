@@ -87,11 +87,11 @@ public class AuthentcationController(IAuthentcationService authorizationService,
 
     [HttpPost("LogIn")]
     [ValidateModel]
-    public async Task<IActionResult> LogIn([FromQuery][Required][EmailAddress] string email , [FromQuery][Required] string password)
+    public async Task<IActionResult> LogIn([FromQuery][Required][EmailAddress] string Email , [FromQuery][Required] string Password)
     {
         try
         {
-            var result = await authorizationService.LogIn(email , password);
+            var result = await authorizationService.LogIn(Email , Password);
             if (result.Count == 4)
             {
                 return result[3] == "200" ?

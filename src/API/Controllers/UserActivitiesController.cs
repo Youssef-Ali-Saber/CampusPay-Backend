@@ -111,5 +111,32 @@ public class UserActivitiesController(IUserActivitieService userActivitieService
             return StatusCode(500, ex.Message);
         }
     }
-
+    [HttpGet("TotelOfMoneyPayed")]
+    [Authorize(Roles = "Student")]
+    public IActionResult TotelOfMoneyPayed()
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Ok(new { Balance = userActivitieService.TotalOfMoneyPayed(userId)});
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+    [HttpGet("TotelOfMoneyDeposited")]
+    [Authorize(Roles = "Student")]
+    public IActionResult TotelOfMoneyDeposited()
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Ok(new { Balance = userActivitieService.TotalOfMoneyDeposited(userId) });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
 }

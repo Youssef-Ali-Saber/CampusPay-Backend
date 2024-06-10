@@ -9,14 +9,14 @@ namespace GraduationProject.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize(Roles = "Admin")]
-public class AccountsController(IAccountService accountService) : ControllerBase
+public class AccountsController(IAuthentcationService authentcationService, IAccountService accountService) : ControllerBase
 {
 
     [HttpGet("GetAll")]
     public async Task<IActionResult> GetAccounts(string type)
     {
         try
-        {
+        { 
             var users = await accountService.GetAccounts(type);
             return Ok(users);
         }
@@ -51,8 +51,21 @@ public class AccountsController(IAccountService accountService) : ControllerBase
                 SSN = userDto.SSN,
                 Picture = userDto.Picture
             };
-            await accountService.CreateAccount(user, userDto.Password, type);
-            return Created();
+            var result = await authentcationService.Register(user, userDto.Password, type);
+            if (result.Count == 3)
+            {
+                return StatusCode(int.Parse(result[2]), new
+                {
+                    userId = result[1],
+                    massage = result[0],
+                    status = true
+                });
+            }
+            return StatusCode(int.Parse(result[1]), new
+            {
+                Error = result[0],
+                status = false
+            });
         }
         catch (Exception ex)
         {

@@ -10,7 +10,6 @@ public interface IUnitOfWork
     IFeedbackRepository FeedbackRepository { get; }
     ITransactionRepository TransactionRepository { get; }
     ITransformationRepository TransformationRepository { get; }
-    IServiceManagementRepository ServiceManagementRepository { get; }
     IDepositionRepository DepositionRepository { get; }
     IDonationRepository DonationRepository { get; }
     IAppWalletRepository AppWalletRepository { get; }

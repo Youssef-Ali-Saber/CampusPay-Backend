@@ -24,7 +24,7 @@ public class UserRepository(AppDbContext db,UserManager<User> userManager) : Gen
         return await userManager.CheckPasswordAsync(user, Password);
     }
 
-    public async Task<IdentityResult> CreateAsync(User user, string Password)
+    public async Task<IdentityResult> CreateUserAsync(User user, string Password)
     {
         return await userManager.CreateAsync(user, Password);
     }

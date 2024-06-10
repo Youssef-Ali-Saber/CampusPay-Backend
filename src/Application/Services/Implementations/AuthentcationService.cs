@@ -23,7 +23,7 @@ public class AuthentcationService(IUnitOfWork unitOfWork, FilesUploader filesUpl
         {
             return ["Sorry, UserName Is already existing", "400"];
         }
-        var result = await unitOfWork.UserRepository.CreateAsync(user, password);
+        var result = await unitOfWork.UserRepository.CreateUserAsync(user, password);
         if (!result.Succeeded)
         {
             return ["Sorry, Failed Try Again", "400"];

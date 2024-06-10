@@ -16,7 +16,6 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<User, Id
     public DbSet<Transformation> Transfers { get; set; }
     public DbSet<Chat> Chats { get; set; }
     public DbSet<Donation> Donations { get; set; }
-    public DbSet<ServiceManagement> ServiceManagements { get; set; }
     public DbSet<ConnectedUser> ConnectedUsers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
