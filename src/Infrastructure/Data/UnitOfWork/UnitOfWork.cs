@@ -1,18 +1,20 @@
 ﻿using Domain.Entities;
 using Domain.IRepositories;
+using Domain.IUnitOfWork;
 using Infrastructure.Data.Context;
+using Infrastructure.Data.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Infrastructure.Data.Repositories;
+namespace Infrastructure.Data.UnitOfWork;
 
 public class UnitOfWork : IUnitOfWork
 {
     private readonly SqlServerDbContext db;
-    public UnitOfWork(SqlServerDbContext db,UserManager<User> userManager)
+    public UnitOfWork(SqlServerDbContext db, UserManager<User> userManager)
     {
         this.db = db;
-        UserRepository = new UserRepository(db,userManager);
+        UserRepository = new UserRepository(db, userManager);
         SocialRequestRepository = new SocialRequestRepository(db);
         ServiceRepository = new ServiceRepository(db);
         FeedbackRepository = new FeedbackRepository(db);

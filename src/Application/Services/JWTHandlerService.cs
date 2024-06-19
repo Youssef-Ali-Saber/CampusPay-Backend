@@ -1,14 +1,14 @@
 ﻿using Domain.Entities;
-using Domain.IRepositories;
+using Domain.IUnitOfWork;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Infrastructure.Services;
+namespace Application.Services;
 
-public class JWTHandler(IUnitOfWork unitOfWork, IConfiguration configuration)
+public class JWTHandlerService(IUnitOfWork unitOfWork, IConfiguration configuration)
 {
     public async Task<string> GenerateToken(User user)
     {

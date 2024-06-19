@@ -1,46 +1,10 @@
-﻿using Application.Services.Interfaces;
-using Domain.Entities;
-using Domain.IRepositories;
+﻿using Domain.Entities;
+using Domain.IUnitOfWork;
 
-namespace Application.Services.Implementations;
+namespace Application.Services;
 
-public class WalletService(IUnitOfWork unitOfWork) : IWalletService
+public class WalletService(IUnitOfWork unitOfWork)
 {
-    public async Task<decimal?> DepositAsync(string userId, decimal balance, string? sessionId)
-    {
-        var user = await unitOfWork.UserRepository.GetByIdAsync(userId);
-        using (var transaction = await unitOfWork.BeginTransactionAsync())
-        {
-            try
-            {
-                user.Balance += balance;
-                var deposit = new Deposition
-                {
-                    Balance = balance,
-                    Date = DateTime.UtcNow,
-                    UserId = userId,
-                    SessionId = sessionId
-                };
-                await unitOfWork.DepositionRepository.CreateAsync(deposit);
-                await unitOfWork.SaveAsync();
-                transaction.Commit();
-                return user.Balance;
-
-            }
-            catch (Exception e)
-            {
-                transaction.Rollback();
-                throw new Exception(e.Message);
-            }
-        }
-    }
-
-    public async Task<decimal?> GetBalanceAsync(string userId)
-    {
-        var user = await unitOfWork.UserRepository.GetByIdAsync(userId);
-        return user?.Balance;
-    }
-
     public async Task<object?> TransferAsync(string FromUserId, string ToUserSSN, decimal balance, double? longit = null, double? latit = null)
     {
 
@@ -73,6 +37,7 @@ public class WalletService(IUnitOfWork unitOfWork) : IWalletService
                     Longitude = longit,
                     Latitude = latit
                 };
+
                 await unitOfWork.TransformationRepository.CreateAsync(transformation);
                 await unitOfWork.SaveAsync();
                 transaction.Commit();

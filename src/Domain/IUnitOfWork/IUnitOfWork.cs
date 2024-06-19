@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
+﻿using Domain.IRepositories;
+using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Domain.IRepositories;
+namespace Domain.IUnitOfWork;
 
 public interface IUnitOfWork
 {

@@ -21,14 +21,17 @@ public class User: IdentityUser
     [MaxLength(6)]
     [MinLength(6)]
     public int? VerificationCode { get; set; }
-    public double? Latitude { get; set; }
-    public double? Longitude { get; set; }
+    public double? Latitude { get; set; } = 30.043489;
+    public double? Longitude { get; set; } = 31.235291;
     [NotMapped]
     public IFormFile? Picture { get; set; }
     public string? FilePath { get; set; }
     public bool IsStoped { get; set; }
     [JsonIgnore]
     public List<Feedback> Feedbacks { get; set; }
-    [JsonIgnore]
-    public List<Service?> services { get; set; }
+    public DateOnly? DateOfBirth { get; set; } = null;
+    public long? ZIPCode { get; set; } = 65311;
+    public string? City { get; set; } = "cairo";
+    public string? State { get; set; } = "CA";
+    public char? Gender { get; set; } = 'M';
 }

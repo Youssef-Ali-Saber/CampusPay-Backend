@@ -1,13 +1,11 @@
+using System.Reflection;
 using System.Text;
-using Application.Services.Implementations;
-using Application.Services.Interfaces;
 using Domain.Entities;
-using Domain.IRepositories;
-using GraduationProject.Hubs;
+using Domain.IUnitOfWork;
+using API.Hubs;
 using Infrastructure.Data.Context;
-using Infrastructure.Data.Repositories;
-using Infrastructure.Seeding;
-using Infrastructure.Services;
+using Infrastructure.Data.UnitOfWork;
+using Infrastructure.SeedingData;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,9 +13,9 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Stripe;
-using AccountService = Application.Services.Implementations.AccountService;
+using Application.Services;
 
-namespace GraduationProject;
+namespace API;
 
 public abstract class Program
 {
@@ -31,25 +29,21 @@ public abstract class Program
                             options.UseSqlServer(builder.Configuration
                                         .GetConnectionString("SqlServerConnection")));
 
+
+
         builder.Services.AddIdentity<User, IdentityRole>()
             .AddEntityFrameworkStores<SqlServerDbContext>()
             .AddDefaultTokenProviders();
-        builder.Services.AddScoped<FilesUploader>();
-        builder.Services.AddScoped<JWTHandler>();
-        builder.Services.AddScoped<StripeService>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-        builder.Services.AddScoped<IServiceService , ServiceService>();
-        builder.Services.AddScoped<IAuthentcationService , AuthentcationService>();
-        builder.Services.AddScoped<IUserActivitieService, UserActivitieService>();
-        builder.Services.AddScoped<IChatService, ChatService>();
-        builder.Services.AddScoped<ISocialRequestService, SocialRequestService>();
-        builder.Services.AddScoped<IWalletService, WalletService>();
-        builder.Services.AddScoped<IAccountService, AccountService>();
-        builder.Services.AddScoped<IConnectedUsersService,ConnectedUsersService>();
-        builder.Services.AddScoped<UsersSeeder>();
-        builder.Services.BuildServiceProvider()
-            .GetRequiredService<UsersSeeder>()
-            .SeedUsersAsync().Wait();
+        builder.Services.AddScoped<FilesUploaderService>();
+        builder.Services.AddScoped<JWTHandlerService>();
+        builder.Services.AddScoped<EmailHandlerService>();
+        builder.Services.AddScoped<HttpClient>();
+        builder.Services.AddScoped<PaymentHandlerService>();
+        builder.Services.AddScoped<UserService>();
+        builder.Services.AddScoped<ChatService>();
+        builder.Services.AddScoped<WalletService>();
+        
 
         builder.Services.AddAuthentication(options =>
         {
@@ -80,13 +74,12 @@ public abstract class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1",
-            new OpenApiInfo
+            c.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "CamPus_Pay.API",
                 Version = "v1"
-            }
-            );
+            });
+
             c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -94,23 +87,36 @@ public abstract class Program
                 Type = SecuritySchemeType.ApiKey,
                 Scheme = JwtBearerDefaults.AuthenticationScheme
             });
+
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
             {
+                Reference = new OpenApiReference
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = JwtBearerDefaults.AuthenticationScheme
-                        },
-                        Scheme = "oauth2",
-                        Name = JwtBearerDefaults.AuthenticationScheme,
-                        In = ParameterLocation.Header
-                    },
-                    Array.Empty<string>()
-                }
-            });
+                    Type = ReferenceType.SecurityScheme,
+                    Id = JwtBearerDefaults.AuthenticationScheme
+                },
+                Scheme = "oauth2",
+                Name = JwtBearerDefaults.AuthenticationScheme,
+                In = ParameterLocation.Header
+            },
+            Array.Empty<string>()
+        }
+    } 
+             
+
+
+            );
+            //c.DocumentFilter<SignalRHubDocumentFilter>();
+
+            // Get the XML comments file path
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+
+            // Include the XML comments
+            c.IncludeXmlComments(xmlPath);
         });
         builder.Services.AddCors(options =>
         {
@@ -123,6 +129,9 @@ public abstract class Program
             );
         }
        );
+
+
+        SeedData(builder).Wait();
 
         var app = builder.Build();
         
@@ -156,5 +165,24 @@ public abstract class Program
         StripeConfiguration.ApiKey = app.Configuration.GetSection("Stripe")["SecretKey"];
 
         app.Run();
+
+
+
+    }
+
+    private static async Task SeedData(WebApplicationBuilder builder)
+    {
+        var userManager = builder.Services.BuildServiceProvider().GetRequiredService<UserManager<User>>();
+        var roleManager = builder.Services.BuildServiceProvider().GetRequiredService<RoleManager<IdentityRole>>();
+        var context = builder.Services.BuildServiceProvider().GetRequiredService<SqlServerDbContext>();
+
+        var rolesSeeder = new RolesSeeder(roleManager);
+        await rolesSeeder.SeedRolesAsync();
+
+        var usersSeeder = new UsersSeeder(userManager);
+        await usersSeeder.SeedUsersAsync();
+
+        var servicesSeeder = new ServicesSeeder(context);
+        await servicesSeeder.SeedServicesAsync();
     }
 }

@@ -3,12 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
-namespace Infrastructure.Migrations
+namespace Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class fdfd : Migration
+    public partial class initi : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -56,6 +54,11 @@ namespace Infrastructure.Migrations
                     Longitude = table.Column<double>(type: "float", nullable: true),
                     FilePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsStoped = table.Column<bool>(type: "bit", nullable: false),
+                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
+                    ZIPCode = table.Column<long>(type: "bigint", nullable: true),
+                    City = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    State = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Gender = table.Column<string>(type: "nvarchar(1)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -74,22 +77,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Deposits",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SessionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Deposits", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -261,6 +248,28 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Deposits",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SessionId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Deposits", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Deposits_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Donations",
                 columns: table => new
                 {
@@ -303,7 +312,7 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Transfers",
+                name: "Transformations",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -317,35 +326,11 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Transfers", x => x.Id);
+                    table.PrimaryKey("PK_Transformations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Transfers_AspNetUsers_FromUserId",
+                        name: "FK_Transformations_AspNetUsers_FromUserId",
                         column: x => x.FromUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ServiceUser",
-                columns: table => new
-                {
-                    UsersId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    servicesId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ServiceUser", x => new { x.UsersId, x.servicesId });
-                    table.ForeignKey(
-                        name: "FK_ServiceUser_AspNetUsers_UsersId",
-                        column: x => x.UsersId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ServiceUser_Services_servicesId",
-                        column: x => x.servicesId,
-                        principalTable: "Services",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -420,31 +405,6 @@ namespace Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                table: "AspNetRoles",
-                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[,]
-                {
-                    { "1140ad2b-6b22-477c-8ba3-2e945bffd4f8", "3b6ce6e7-0399-45fe-a641-3614825e8a3e", "Moderator", "MODERATOR" },
-                    { "2e7796d4-c1ec-41d8-bc7b-17a1a4ed0b32", "e749b47c-11e2-48ac-8628-f6fb34a22c3c", "Student", "STUDENT" },
-                    { "4724b996-5a7f-4ae0-84b1-cd02e8608036", "5553d4fa-d26b-445a-a4e9-a23f3e4b3c38", "Admin", "ADMIN" },
-                    { "bdfe319b-8a5f-42eb-92e8-ec5ed7f7b7a0", "6f1503b0-47a7-41ae-9b6c-4b43d335b157", "Donor", "DONOR" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Services",
-                columns: new[] { "Id", "CollegeName", "Cost", "Description", "FilePath", "Name", "SquadYear", "Type" },
-                values: new object[,]
-                {
-                    { 1, "FCI", 1000m, "University expenses", null, "University expenses", 4, "expenses" },
-                    { 2, "FCI", 200m, "Medical examination", null, "Medical examination", 4, "expenses" },
-                    { 3, "FCI", 350m, "Gym", null, "Gym", 4, "entertaining" },
-                    { 4, "FCI", 50m, "University Library", null, "University Library", 4, "expenses" },
-                    { 5, "FCI", 250m, "University trip", null, "University trip", 4, "entertaining" },
-                    { 6, "FCI", 2500m, "College town", null, "College town", 4, "expenses" },
-                    { 7, "FCI", 600m, "Skills Exam", null, "Skills Exam", 4, "expenses" }
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -515,6 +475,11 @@ namespace Infrastructure.Migrations
                 column: "userId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Deposits_UserId",
+                table: "Deposits",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Donations_UserId",
                 table: "Donations",
                 column: "UserId");
@@ -523,11 +488,6 @@ namespace Infrastructure.Migrations
                 name: "IX_Feedbacks_UserId",
                 table: "Feedbacks",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ServiceUser_servicesId",
-                table: "ServiceUser",
-                column: "servicesId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SocialRequests_DonationId",
@@ -557,8 +517,8 @@ namespace Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transfers_FromUserId",
-                table: "Transfers",
+                name: "IX_Transformations_FromUserId",
+                table: "Transformations",
                 column: "FromUserId");
         }
 
@@ -596,16 +556,13 @@ namespace Infrastructure.Migrations
                 name: "Feedbacks");
 
             migrationBuilder.DropTable(
-                name: "ServiceUser");
-
-            migrationBuilder.DropTable(
                 name: "SocialRequests");
 
             migrationBuilder.DropTable(
                 name: "Transactions");
 
             migrationBuilder.DropTable(
-                name: "Transfers");
+                name: "Transformations");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

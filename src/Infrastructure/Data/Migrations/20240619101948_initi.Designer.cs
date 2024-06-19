@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Infrastructure.Migrations
+namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(SqlServerDbContext))]
-    [Migration("20240610194909_fdfd")]
-    partial class fdfd
+    [Migration("20240619101948_initi")]
+    partial class initi
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -120,9 +120,11 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Deposits");
                 });
@@ -213,78 +215,6 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Services");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CollegeName = "FCI",
-                            Cost = 1000m,
-                            Description = "University expenses",
-                            Name = "University expenses",
-                            SquadYear = 4,
-                            Type = "expenses"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CollegeName = "FCI",
-                            Cost = 200m,
-                            Description = "Medical examination",
-                            Name = "Medical examination",
-                            SquadYear = 4,
-                            Type = "expenses"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CollegeName = "FCI",
-                            Cost = 350m,
-                            Description = "Gym",
-                            Name = "Gym",
-                            SquadYear = 4,
-                            Type = "entertaining"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CollegeName = "FCI",
-                            Cost = 50m,
-                            Description = "University Library",
-                            Name = "University Library",
-                            SquadYear = 4,
-                            Type = "expenses"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CollegeName = "FCI",
-                            Cost = 250m,
-                            Description = "University trip",
-                            Name = "University trip",
-                            SquadYear = 4,
-                            Type = "entertaining"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CollegeName = "FCI",
-                            Cost = 2500m,
-                            Description = "College town",
-                            Name = "College town",
-                            SquadYear = 4,
-                            Type = "expenses"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CollegeName = "FCI",
-                            Cost = 600m,
-                            Description = "Skills Exam",
-                            Name = "Skills Exam",
-                            SquadYear = 4,
-                            Type = "expenses"
-                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.SocialRequest", b =>
@@ -413,7 +343,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("FromUserId");
 
-                    b.ToTable("Transfers");
+                    b.ToTable("Transformations");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -427,6 +357,9 @@ namespace Infrastructure.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("College_Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -434,6 +367,9 @@ namespace Infrastructure.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -448,6 +384,9 @@ namespace Infrastructure.Migrations
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Gender")
+                        .HasColumnType("nvarchar(1)");
 
                     b.Property<bool>("IsStoped")
                         .HasColumnType("bit");
@@ -492,6 +431,9 @@ namespace Infrastructure.Migrations
                     b.Property<int>("Squad_Year")
                         .HasColumnType("int");
 
+                    b.Property<string>("State")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -502,6 +444,9 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("VerificationCode")
                         .HasMaxLength(6)
                         .HasColumnType("int");
+
+                    b.Property<long?>("ZIPCode")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -552,36 +497,6 @@ namespace Infrastructure.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "2e7796d4-c1ec-41d8-bc7b-17a1a4ed0b32",
-                            ConcurrencyStamp = "e749b47c-11e2-48ac-8628-f6fb34a22c3c",
-                            Name = "Student",
-                            NormalizedName = "STUDENT"
-                        },
-                        new
-                        {
-                            Id = "bdfe319b-8a5f-42eb-92e8-ec5ed7f7b7a0",
-                            ConcurrencyStamp = "6f1503b0-47a7-41ae-9b6c-4b43d335b157",
-                            Name = "Donor",
-                            NormalizedName = "DONOR"
-                        },
-                        new
-                        {
-                            Id = "4724b996-5a7f-4ae0-84b1-cd02e8608036",
-                            ConcurrencyStamp = "5553d4fa-d26b-445a-a4e9-a23f3e4b3c38",
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = "1140ad2b-6b22-477c-8ba3-2e945bffd4f8",
-                            ConcurrencyStamp = "3b6ce6e7-0399-45fe-a641-3614825e8a3e",
-                            Name = "Moderator",
-                            NormalizedName = "MODERATOR"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -690,21 +605,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ServiceUser", b =>
-                {
-                    b.Property<string>("UsersId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("servicesId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UsersId", "servicesId");
-
-                    b.HasIndex("servicesId");
-
-                    b.ToTable("ServiceUser");
-                });
-
             modelBuilder.Entity("Domain.Entities.Chat", b =>
                 {
                     b.HasOne("Domain.Entities.User", "User")
@@ -725,6 +625,17 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("user");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Deposition", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.Donation", b =>
@@ -761,7 +672,7 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.User", "User")
+                    b.HasOne("Domain.Entities.User", "Student")
                         .WithMany()
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -771,7 +682,7 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Service");
 
-                    b.Navigation("User");
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Domain.Entities.Transaction", b =>
@@ -851,21 +762,6 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ServiceUser", b =>
-                {
-                    b.HasOne("Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Service", null)
-                        .WithMany()
-                        .HasForeignKey("servicesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

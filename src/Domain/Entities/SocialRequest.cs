@@ -22,10 +22,9 @@ public class SocialRequest
     public int ServiceId { get; set; }
     public Service Service { get; set; }
     [Required]
-    [ForeignKey("User")]
     public string StudentId { get; set; }
     public string? ModeratorId { get; set; }
-    public User User { get; set; }
+    public User Student { get; set; }
     [ForeignKey("Donation")]
     public int? DonationId { get; set; }
     [JsonIgnore]
