@@ -13,7 +13,7 @@ namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(SqlServerDbContext))]
     [Migration("20240619101948_initi")]
-    partial class initi
+    partial class Initi
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

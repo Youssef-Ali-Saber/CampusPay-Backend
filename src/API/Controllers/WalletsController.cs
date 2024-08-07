@@ -2,11 +2,13 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using Application.DTOs;
 using Application.Services;
 using Domain.Entities;
 using Domain.IUnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stripe;
 using Stripe.Checkout;
 
 namespace API.Controllers;
@@ -24,14 +26,17 @@ public class WalletsController(
     )
     : ControllerBase
 {
+
+    
+    
     /// <summary>
     /// Initiates a deposit to the user's wallet.
     /// </summary>
     /// <param name="balance">The amount to be deposited.</param>
     /// <returns>Payment link for the deposit.</returns>
-    [HttpPost("Deposit")]
+    [HttpPost("DepositV1")]
     [Authorize(Roles = "Student")]
-    public IActionResult Deposit([FromForm] decimal balance)
+    public IActionResult DepositV1([FromQuery][Required] decimal balance)
     {
         try
         {
@@ -45,6 +50,63 @@ public class WalletsController(
         catch (Exception ex)
         {
             return StatusCode(500, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Initiates a deposit to the user's wallet.
+    /// </summary>
+    /// <param name="balance">The amount to be deposited.</param>
+    /// <returns>Payment link for the deposit.</returns>
+    [HttpPost("DepositV2")]
+    [Authorize(Roles = "Student")]
+    public async Task<IActionResult> DepositV2([FromQuery][Required] decimal balance)
+    {
+        try
+        {
+            var clientSecret = await stripeService.CreatepaymentIntent(balance);
+            return Ok(new { client_secret = clientSecret });
+        }
+        catch (StripeException e)
+        {
+            return BadRequest(new { error = e.StripeError.Message });
+        }
+    }
+
+    /// <summary>
+    /// Initiates a deposit to the user's wallet.
+    /// </summary>
+    /// <param name="balance">The amount to be deposited.</param>
+    /// <returns>Payment link for the deposit.</returns>
+    [HttpPost("DepositV3")]
+    [Authorize(Roles = "Student")]
+    public async Task<IActionResult> DepositV3([FromQuery][Required] decimal balance)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await unitOfWork.UserRepository.GetByIdAsync(userId);
+        using (var transaction = await unitOfWork.BeginTransactionAsync())
+        {
+            try
+            {
+                user.Balance += balance;
+                unitOfWork.UserRepository.Update(user);
+                var deposit = new Deposition
+                {
+                    Balance = balance,
+                    Date = DateTime.UtcNow,
+                    UserId = userId
+                };
+                await unitOfWork.DepositionRepository.CreateAsync(deposit);
+                await unitOfWork.SaveAsync();
+                transaction.Commit();
+                return Ok(new { Balance = user.Balance });
+
+            }
+            catch (Exception e)
+            {
+                transaction.Rollback();
+                return StatusCode(500, e.Message);
+            }
         }
     }
 
@@ -69,6 +131,7 @@ public class WalletsController(
                 try
                 {
                     user.Balance += balance;
+                    unitOfWork.UserRepository.Update(user);
                     var deposit = new Deposition
                     {
                         Balance = balance,
@@ -90,7 +153,6 @@ public class WalletsController(
             }
         }
         return BadRequest("Payment not completed");
-
     }
 
     /// <summary>
@@ -151,16 +213,16 @@ public class WalletsController(
 
 
 
-    [HttpPost("TransferWithModel")]
+    [HttpPost("FD_Model/Transfer")]
     [Authorize(Roles = "Student")]
-    public async Task<IActionResult> TransferUsingMLModel([MaxLength(14)][MinLength(14)] string SSN, decimal balance, double longitude, double Latitude)
+    public async Task<IActionResult> TransferUsingMLModel([FromBody] MLModel_TransferDto transferDto)
     {
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var FromUser = await unitOfWork.UserRepository.GetByIdAsync(userId);
-            var ToUser = unitOfWork.UserRepository.GetByFilter(u => u.SSN == SSN).FirstOrDefault();
-            if (FromUser?.Balance < balance)
+            var ToUser = unitOfWork.UserRepository.GetByFilter(u => u.SSN == transferDto.SSN).FirstOrDefault();
+            if (FromUser?.Balance < (decimal)transferDto.Balance)
             {
                 return BadRequest("Your balance not enough");
             }
@@ -174,23 +236,25 @@ public class WalletsController(
             }
             var requestBody = new
             {
-                trans_date_trans_time = $"{DateOnly.FromDateTime(DateTime.Now)} {DateTime.Now.Hour}:{DateTime.Now.Minute}:{DateTime.Now.Second}",
-                dob = FromUser.DateOfBirth.ToString(),
-                amt = balance,
+                trans_date_trans_time = "2022-05-05 08:48:20",
+                dob = "2002-04-17",
+                amt = transferDto.Balance,
                 zip = FromUser.ZIPCode,
                 city = FromUser.City,
                 state = FromUser.State,
                 user_lat = FromUser.Latitude,
                 user_long = FromUser.Longitude,
-                trans_lat = Latitude,
-                trans_long = longitude,
+                trans_lat = transferDto.Latitude,
+                trans_long = transferDto.Longitude,
                 gender = FromUser.Gender,
                 transaction_type = "transfer money",
                 email_sender = FromUser.Email,
                 email_receiver = ToUser.Email
             };
 
-
+            //{DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}
+            //FromUser.DateOfBirth.ToString()
+            //{DateTime.Now.Hour}:{DateTime.Now.Minute}:{DateTime.Now.Second}
             //var requestBody = new
             //{
             //    trans_date_trans_time = "2022-05-05 08:48:20",
@@ -228,9 +292,9 @@ public class WalletsController(
 
             if (transactionResponse["prediction"] == "Not Fraud")
             {
-                var result0 = await walletService.TransferAsync(userId, SSN, balance, longitude, Latitude);
+                var result0 = await walletService.TransferAsync(userId, transferDto.SSN,(decimal)transferDto.Balance, transferDto.Longitude, transferDto.Latitude);
                 if (result0 is decimal)
-                    return Ok(new { Balance = result0 });
+                    return Ok(new { YourBalanceNow = result0 });
                 return BadRequest(result0);
             }
             return BadRequest("Fraud Transaction");

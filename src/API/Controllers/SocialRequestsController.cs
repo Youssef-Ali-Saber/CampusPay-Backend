@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.IUnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stripe;
 using Stripe.Checkout;
 using System.Security.Claims;
 
@@ -203,19 +204,25 @@ public class SocialRequestsController(IUnitOfWork unitOfWork, PaymentHandlerServ
         }
     }
 
+  
+
     /// <summary>
     /// Initiates a donation for a specific social request.
     /// </summary>
     /// <param name="socialRequestId">The ID of the social request to donate to.</param>
     /// <returns>A link to complete the donation.</returns>
-    [HttpPut("Donate")]
+    [HttpPut("DonateV1")]
     [Authorize(Roles = "Donor")]
-    public IActionResult Donate(int socialRequestId)
+    public IActionResult DonateV1(int socialRequestId)
     {
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var socialRequest = unitOfWork.SocialRequestRepository.GetByFilter(m => m.Id == socialRequestId, [i => i.Service]).FirstOrDefault();
+
+            if (socialRequest is null)
+                return NotFound();
+
             var successUrl = $"api/SocialRequests/Donate/success?sessionId={{CHECKOUT_SESSION_ID}}&socialRequestId={socialRequest.Id}&userId={userId}";
             var cancelUrl = $"api/SocialRequests/Donate/cancel?sessionId={{CHECKOUT_SESSION_ID}}";
 
@@ -228,6 +235,88 @@ public class SocialRequestsController(IUnitOfWork unitOfWork, PaymentHandlerServ
             return StatusCode(500, ex.Message);
         }
     }
+
+    /// <summary>
+    /// Initiates a donation for a specific social request.
+    /// </summary>
+    /// <param name="socialRequestId">The ID of the social request to donate to.</param>
+    /// <returns>A link to complete the donation.</returns>
+    [HttpPut("DonateV2")]
+    [Authorize(Roles = "Donor")]
+    public async Task<IActionResult> DonateV2(int socialRequestId)
+    {
+        try
+        {
+            var socialRequest = unitOfWork.SocialRequestRepository.GetByFilter(m => m.Id == socialRequestId, [i => i.Service]).FirstOrDefault();
+
+            if (socialRequest is null)
+                return NotFound();
+
+            var clientSecret = await stripeService.CreatepaymentIntent(socialRequest.Service.Cost);
+
+            return Ok(new { client_secret = clientSecret });
+        }
+        catch (StripeException e)
+        {
+            return BadRequest(new { error = e.StripeError.Message });
+        }
+    }
+
+    /// <summary>
+    /// Initiates a donation for a specific social request.
+    /// </summary>
+    /// <param name="socialRequestId">The ID of the social request to donate to.</param>
+    /// <returns>A link to complete the donation.</returns>
+    [HttpPut("DonateV3")]
+    [Authorize(Roles = "Donor")]
+    public async Task<IActionResult> DonateV3(int socialRequestId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var socialRequest = unitOfWork.SocialRequestRepository.GetByFilter(s => s.Id == socialRequestId, [s => s.Service]).FirstOrDefault();
+        if (socialRequest is null)
+            return NotFound();
+        using (var transaction = await unitOfWork.BeginTransactionAsync())
+        {
+            try
+            {
+                var donation = new Donation
+                {
+                    Date = DateTime.UtcNow,
+                    SocialRequestId = socialRequest.Id,
+                    UserId = userId
+                };
+                await unitOfWork.DonationRepository.CreateAsync(donation);
+                await unitOfWork.SaveAsync();
+                var donations = unitOfWork.AppWalletRepository.GetByFilter(a => a.Type == "Donations").FirstOrDefault();
+                if (donations == null)
+                {
+                    var appWallet = new AppWallet
+                    {
+                        Balance = socialRequest.Service.Cost,
+                        Type = "Donations"
+                    };
+                    await unitOfWork.AppWalletRepository.CreateAsync(appWallet);
+                    await unitOfWork.SaveAsync();
+                }
+                else
+                {
+                    donations.Balance += socialRequest.Service.Cost;
+                }
+                socialRequest.Status = "Donated";
+                socialRequest.DonationId = donation.Id;
+                unitOfWork.SocialRequestRepository.Update(socialRequest);
+                await unitOfWork.SaveAsync();
+                transaction.Commit();
+                return Ok(new { Message = "Donation done successful" });
+            }
+            catch (Exception e)
+            {
+                transaction.Rollback();
+                return StatusCode(500, e.Message);
+            }
+        }
+    }
+
 
     /// <summary>
     /// Handles successful donation callback.

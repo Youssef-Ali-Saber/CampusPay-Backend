@@ -29,8 +29,8 @@ public class User: IdentityUser
     public bool IsStoped { get; set; }
     [JsonIgnore]
     public List<Feedback> Feedbacks { get; set; }
-    public DateOnly? DateOfBirth { get; set; } = null;
-    public long? ZIPCode { get; set; } = 65311;
+    public DateOnly? DateOfBirth { get; set; } = new DateOnly(2002, 4, 17);
+    public int? ZIPCode { get; set; } = 65311;
     public string? City { get; set; } = "cairo";
     public string? State { get; set; } = "CA";
     public char? Gender { get; set; } = 'M';

@@ -204,7 +204,7 @@ public class AuthentcationController(UserService userService, IUnitOfWork unitOf
     /// <returns>Action result with the outcome of the operation.</returns>
     [HttpPost("ForgetPassword")]
     [ValidateModel]
-    public async Task<IActionResult> ForgetPassword([RegularExpression(@"^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$")][FromQuery] string email)
+    public async Task<IActionResult> ForgetPassword([EmailAddress][FromQuery] string email)
     {
         try
         {
@@ -276,12 +276,10 @@ public class AuthentcationController(UserService userService, IUnitOfWork unitOf
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-                return BadRequest(new { status = false });
             var user = await unitOfWork.UserRepository.GetByIdAsync(userId);
             if (user == null)
                 return NotFound(new { status = false });
-            await unitOfWork.UserRepository.DeleteAsync<string>(user.Id);
+            await unitOfWork.UserRepository.DeleteAsync<string>(userId);
             return Ok(new { status = true });
         }
         catch (Exception ex)

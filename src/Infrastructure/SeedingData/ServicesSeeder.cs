@@ -21,7 +21,6 @@ namespace Infrastructure.SeedingData
             {
                 new Service
                 {
-                    Id = 1,
                     Name = "University expenses",
                     Description = "University expenses",
                     CollegeName = "FCI",
@@ -31,7 +30,6 @@ namespace Infrastructure.SeedingData
                 },
                 new Service
                 {
-                    Id = 2,
                     Name = "Medical examination",
                     Description = "Medical examination",
                     CollegeName = "FCI",
@@ -41,7 +39,6 @@ namespace Infrastructure.SeedingData
                 },
                 new Service
                 {
-                    Id = 3,
                     Name = "Gym",
                     Description = "Gym",
                     CollegeName = "FCI",
@@ -51,7 +48,6 @@ namespace Infrastructure.SeedingData
                 },
                 new Service
                 {
-                    Id = 4,
                     Name = "University Library",
                     Description = "University Library",
                     CollegeName = "FCI",
@@ -61,7 +57,6 @@ namespace Infrastructure.SeedingData
                 },
                 new Service
                 {
-                    Id = 5,
                     Name = "University trip",
                     Description = "University trip",
                     CollegeName = "FCI",
@@ -71,7 +66,6 @@ namespace Infrastructure.SeedingData
                 },
                 new Service
                 {
-                    Id = 6,
                     Name = "College town",
                     Description = "College town",
                     CollegeName = "FCI",
@@ -81,7 +75,6 @@ namespace Infrastructure.SeedingData
                 },
                 new Service
                 {
-                    Id = 7,
                     Name = "Skills Exam",
                     Description = "Skills Exam",
                     CollegeName = "FCI",

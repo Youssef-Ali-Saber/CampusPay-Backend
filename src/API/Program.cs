@@ -34,6 +34,7 @@ public abstract class Program
         builder.Services.AddIdentity<User, IdentityRole>()
             .AddEntityFrameworkStores<SqlServerDbContext>()
             .AddDefaultTokenProviders();
+
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<FilesUploaderService>();
         builder.Services.AddScoped<JWTHandlerService>();
@@ -72,52 +73,7 @@ public abstract class Program
         builder.Services.AddSignalR();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new OpenApiInfo
-            {
-                Title = "CamPus_Pay.API",
-                Version = "v1"
-            });
-
-            c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
-            {
-                Name = "Authorization",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = JwtBearerDefaults.AuthenticationScheme
-            });
-
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = JwtBearerDefaults.AuthenticationScheme
-                },
-                Scheme = "oauth2",
-                Name = JwtBearerDefaults.AuthenticationScheme,
-                In = ParameterLocation.Header
-            },
-            Array.Empty<string>()
-        }
-    } 
-             
-
-
-            );
-            //c.DocumentFilter<SignalRHubDocumentFilter>();
-
-            // Get the XML comments file path
-            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-
-            // Include the XML comments
-            c.IncludeXmlComments(xmlPath);
-        });
+        builder.Services.AddSwaggerGen();
         builder.Services.AddCors(options =>
         {
             options.AddPolicy(ALLOWALL, policyBuilder =>
@@ -152,9 +108,7 @@ public abstract class Program
         }
         );
         
-        
         app.UseCors(ALLOWALL);
-
         
         app.UseAuthentication();
 
@@ -173,7 +127,9 @@ public abstract class Program
     private static async Task SeedData(WebApplicationBuilder builder)
     {
         var userManager = builder.Services.BuildServiceProvider().GetRequiredService<UserManager<User>>();
+
         var roleManager = builder.Services.BuildServiceProvider().GetRequiredService<RoleManager<IdentityRole>>();
+
         var context = builder.Services.BuildServiceProvider().GetRequiredService<SqlServerDbContext>();
 
         var rolesSeeder = new RolesSeeder(roleManager);

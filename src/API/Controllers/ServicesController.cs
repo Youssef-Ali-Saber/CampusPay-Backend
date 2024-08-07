@@ -171,6 +171,8 @@ public class ServicesController(IUnitOfWork unitOfWork,FilesUploaderService file
 
         var user = await unitOfWork.UserRepository.GetByIdAsync(userId);
 
+        if (user.Balance < service.Cost)
+            return BadRequest(new { message = "Your balance is not enough" });
 
         using (var transaction = await unitOfWork.BeginTransactionAsync())
         {
