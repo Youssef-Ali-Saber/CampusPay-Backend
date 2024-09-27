@@ -1,3 +1,6 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
 name: .NET
 
 on:
@@ -10,20 +13,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Install SSH Client
-      run: sudo apt-get install openssh-client
-
-    - name: Deploy to Server
-      uses: appleboy/ssh-action@v1.0.3
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
-        host: root@site3746.siteasp.net
-        username: site3746
-        key: 7Mm?Qg%4k3X@
-        script: |
-          cd /var/www/html
-          git pull
-          dotnet publish -c Release -o /var/www/html
-          sudo systemctl restart kestrel-helloapp.service
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
