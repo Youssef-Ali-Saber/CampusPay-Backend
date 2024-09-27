@@ -19,7 +19,7 @@ jobs:
     - name: Deploy to Server
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: site3746.siteasp.net
+        host: root@site3746.siteasp.net
         username: site3746
         key: 7Mm?Qg%4k3X@
         script: |
