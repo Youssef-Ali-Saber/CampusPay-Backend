@@ -18,7 +18,17 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Restore dependencies
+    - name: Restore App dependencies
       run: dotnet restore
-    - name: Build
+
+    - name: Build App
       run: dotnet build --no-restore
+
+    - name: Publish App
+      run: dotnet publish -c Release -o /my_app
+    
+    - name: Upload App Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: my_app_artifact
+        path: /my_app
